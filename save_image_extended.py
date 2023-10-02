@@ -33,7 +33,7 @@ class SaveImageExtended:
 				'filename_keys': ('STRING', {'default': 'steps, cfg', 'multiline': False}),
 				'foldername_prefix': ('STRING', {'default': 'Hej'}),
 				'foldername_keys': ('STRING', {'default': 'sampler_name, scheduler', 'multiline': False}),
-				'prompt_to_file': (['disabled', 'enabled'],),
+				'prompt_to_json': (['disabled', 'enabled'],),
 			},
 			'hidden': {'prompt': 'PROMPT', 'extra_pnginfo': 'EXTRA_PNGINFO'},
 		}
@@ -85,7 +85,7 @@ class SaveImageExtended:
 			if isinstance(value, dict):
 				SaveImageExtended.find_keys_recursively(value, keys_to_find, found_values)
 
-	def save_images(self, images, filename_prefix, filename_keys, foldername_prefix, foldername_keys, prompt_to_file, counter_digits, save_metadata, prompt=None, extra_pnginfo=None):
+	def save_images(self, images, filename_prefix, filename_keys, foldername_prefix, foldername_keys, prompt_to_json, counter_digits, save_metadata, prompt=None, extra_pnginfo=None):
 
 		## Generate file name
 		filename_keys_to_extract = [item.strip() for item in filename_keys.split(',')]
@@ -142,10 +142,10 @@ class SaveImageExtended:
 				results.append({ 'filename': file, 'subfolder': subfolder, 'type': self.type})
 
 				#remove when done
-				# logging.info(f"Prompt: {json.dumps(prompt, indent=4)}")
+				logging.info(f"Prompt: {json.dumps(prompt, indent=4)}")
 
 			## If enabled, save positive & negative prompt to JSON
-			if prompt_to_file =='enabled':
+			if prompt_to_json =='enabled':
 				if prompt is not None:
 					prompt_keys_to_save = {}
 
@@ -153,14 +153,14 @@ class SaveImageExtended:
 						class_type = prompt[key].get('class_type', None)
 						inputs = prompt[key].get('inputs', {})
 
-						# Efficiency Loader prompt structure
-						if class_type == 'Eff. Loader SDXL':
+						# Efficiency Loaders prompt structure
+						if class_type == 'Efficient Loader' or class_type == 'Eff. Loader SDXL':
 							if 'positive' in inputs and 'negative' in inputs:
 								prompt_keys_to_save['positive'] = inputs.get('positive')
 								prompt_keys_to_save['negative'] = inputs.get('negative')
 
-						# Original KSampler prompt structure
-						elif class_type == 'KSampler' or class_type == 'UltimateSDUpscale':
+						# KSampler/UltimateSDUpscale prompt structure
+						elif class_type == 'KSampler' or class_type == 'KSamplerAdvanced' or class_type == 'UltimateSDUpscale':
 							positive_ref = inputs.get('positive', [])[0] if 'positive' in inputs else None
 							negative_ref = inputs.get('negative', [])[0] if 'negative' in inputs else None
 
