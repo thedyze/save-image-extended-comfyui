@@ -1,20 +1,15 @@
 import os
 import sys
 import json
-import time
 from PIL import Image
 from PIL.PngImagePlugin import PngInfo
 import numpy as np
-#remove logging when done
-import logging
 from datetime import datetime
+from pathlib import Path
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), 'comfy'))
 
 import folder_paths
-
-# remove when done
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 class SaveImageExtended:
 	def __init__(self):
@@ -27,13 +22,13 @@ class SaveImageExtended:
 		return {
 			'required': {
 				'images': ('IMAGE', ),
+				'filename_prefix': ('STRING', {'default': 'myFile'}),
+				'filename_keys': ('STRING', {'default': 'steps, cfg', 'multiline': False}),
+				'foldername_prefix': ('STRING', {'default': 'myPix'}),
+				'foldername_keys': ('STRING', {'default': 'sampler_name, scheduler', 'multiline': False}),
+				'save_prompt': (['disabled', 'enabled'],),
 				'save_metadata': (['disabled', 'enabled'], {'default': 'enabled'}),
 				'counter_digits': ([2, 3, 4, 5, 6], {'default': 3}),
-				'filename_prefix': ('STRING', {'default': 'Yo'}),
-				'filename_keys': ('STRING', {'default': 'steps, cfg', 'multiline': False}),
-				'foldername_prefix': ('STRING', {'default': 'Hej'}),
-				'foldername_keys': ('STRING', {'default': 'sampler_name, scheduler', 'multiline': False}),
-				'prompt_to_json': (['disabled', 'enabled'],),
 			},
 			'hidden': {'prompt': 'PROMPT', 'extra_pnginfo': 'EXTRA_PNGINFO'},
 		}
@@ -44,14 +39,16 @@ class SaveImageExtended:
 	CATEGORY = 'image'
 
 	def get_subfolder_path(self, image_path, output_path):
-		output_parts = output_path.strip(os.sep).split(os.sep)
-		image_parts = image_path.strip(os.sep).split(os.sep)
-		common_parts = os.path.commonprefix([output_parts, image_parts])
-		subfolder_parts = image_parts[len(common_parts):]
-		subfolder_path = os.sep.join(subfolder_parts[:-1])
-		return subfolder_path
+		image_path = Path(image_path).resolve()
+		output_path = Path(output_path).resolve()
+		relative_path = image_path.relative_to(output_path)
 
-	## Extract counter number from file names
+		# Remove the last part (filename) and return as string
+		subfolder_path = relative_path.parent
+
+		return str(subfolder_path)
+
+	# Extract counter number from file names
 	def get_latest_counter(self, folder_path, filename_prefix):
 		counter = 1
 		if not os.path.exists(folder_path):
@@ -85,9 +82,9 @@ class SaveImageExtended:
 			if isinstance(value, dict):
 				SaveImageExtended.find_keys_recursively(value, keys_to_find, found_values)
 
-	def save_images(self, images, filename_prefix, filename_keys, foldername_prefix, foldername_keys, prompt_to_json, counter_digits, save_metadata, prompt=None, extra_pnginfo=None):
+	def save_images(self, images, filename_prefix, filename_keys, foldername_prefix, foldername_keys, save_prompt, counter_digits, save_metadata, prompt=None, extra_pnginfo=None):
 
-		## Generate file name
+		# Generate file name
 		filename_keys_to_extract = [item.strip() for item in filename_keys.split(',')]
 		custom_filename = ''
 		if len(filename_prefix) > 0:
@@ -101,7 +98,7 @@ class SaveImageExtended:
 				if value is not None:
 					custom_filename += f'{value}_'
 
-		## Generate folder name
+		# Generate folder name
 		foldername_keys_to_extract = [item.strip() for item in foldername_keys.split(',')]
 		custom_foldername = foldername_prefix
 
@@ -113,7 +110,7 @@ class SaveImageExtended:
 				if value is not None:
 					custom_foldername += f'_{value}'
 
-		## Create and save images
+		# Create and save images
 		try:
 			full_output_folder, filename, _, _, custom_filename = folder_paths.get_save_image_path(custom_filename, self.output_dir, images[0].shape[1], images[0].shape[0])
 			output_path = os.path.join(full_output_folder, custom_foldername)
@@ -141,11 +138,8 @@ class SaveImageExtended:
 				subfolder = self.get_subfolder_path(image_path, self.output_dir)
 				results.append({ 'filename': file, 'subfolder': subfolder, 'type': self.type})
 
-				#remove when done
-				logging.info(f"Prompt: {json.dumps(prompt, indent=4)}")
-
-			## If enabled, save positive & negative prompt to JSON
-			if prompt_to_json =='enabled':
+			# If enabled, save positive & negative prompt to JSON
+			if save_prompt =='enabled':
 				if prompt is not None:
 					prompt_keys_to_save = {}
 
@@ -178,8 +172,12 @@ class SaveImageExtended:
 				existing_data = {}
 
 				if os.path.exists(json_file_path):
-					with open(json_file_path, 'r') as f:
-						existing_data = json.load(f)
+					try:
+						with open(json_file_path, 'r') as f:
+							existing_data = json.load(f)
+					except json.JSONDecodeError:
+						print(f"The file {json_file_path} is empty or malformed. Initializing with empty data.")
+						existing_data = {}
 
 				timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 				new_entry = {}
