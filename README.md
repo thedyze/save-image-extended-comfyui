@@ -6,9 +6,10 @@
 
  ## Installation
 1. Open a terminal inside the 'custom_nodes' folder located in your ComfyUI installation dir
-2. Use the `git clone` command to clone the [save-image-extended-comfyui](https://github.com/thedyze/save-image-extended-comfyui) repo.<br>
-`git clone https://github.com/thedyze/save-image-extended-comfyui.git`
-
+2. Use the `git clone` command to clone the [save-image-extended-comfyui](https://github.com/thedyze/save-image-extended-comfyui) repo.
+```
+git clone https://github.com/thedyze/save-image-extended-comfyui
+```
 
 ## Input Parameters / Usage
 
@@ -20,7 +21,7 @@
 - `save_metadata` - Saves metadata into the image
 - `counter_digits` - The number of digits used for the image counter. `3` = image_001.png. Will adjust the counter if you delete files. Looks for the highest number in the folder, but does not fill gaps.
 
-Does not check for illegal characters in entered file or folder names. May not be compatible with every other custom node, depending on changes in the `prompt` object. Tested and working with default samplers, Efficiency nodes and SD Ultimate Upscale.
+Does not check for illegal characters in entered file or folder names. May not be compatible with every other custom node, depending on changes in the `prompt` object. Tested and working with default samplers, Efficiency nodes and UltimateSDUpscale.
 #
 <br>
 
