@@ -2,7 +2,7 @@
 
  ![](assets/example.png)
 
- Customize the information saved in file- and folder names. Use the values of sampler parameters as part of file or folder names. <br>Save your positive & negative prompt as entries in a JSON (text) file, in each folder.
+ Customize the information saved in file- and folder names. Use the values of sampler parameters as part of file or folder names. (Actually most parameters of any nodes in use works)<br>Save your positive & negative prompt as entries in a JSON (text) file, in each folder.
 
  ## Installation
 1. Open a terminal inside the 'custom_nodes' folder located in your ComfyUI installation dir
