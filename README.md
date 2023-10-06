@@ -21,7 +21,11 @@ git clone https://github.com/thedyze/save-image-extended-comfyui
 - `save_metadata` - Saves metadata into the image.
 - `counter_digits` - The number of digits used for the image counter. `3` = image_001.png. Will adjust the counter if you delete files. Looks for the highest number in the folder, but does not fill gaps.
 
-Does not check for illegal characters in entered file or folder names. May not be compatible with every other custom node, depending on changes in the `prompt` object. Tested and working with default samplers, Efficiency nodes and UltimateSDUpscale.
+## Automatic folder names and date/time in names:
+
+Convert the 'prefix' parameters to inputs (right click in the node and select e.g 'convert foldername_prefix to input'. Then attach the 'Get Date Time String' custom node from JPS to these inputs. This way a new folder name can be automatically generated each time generate is pressed.
+#
+Disclaimer: Does not check for illegal characters entered in file or folder names. May not be compatible with every other custom node, depending on changes in the `prompt` object. Tested and working with default samplers, Efficiency nodes and UltimateSDUpscale.
 #
 <br>
 
