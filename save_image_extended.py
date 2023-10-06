@@ -84,6 +84,11 @@ class SaveImageExtended:
 
 	def save_images(self, images, filename_prefix, filename_keys, foldername_prefix, foldername_keys, save_prompt, counter_digits, save_metadata, prompt=None, extra_pnginfo=None):
 
+		# Set resolution key value
+		i = 255. * images[0].cpu().numpy()
+		img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
+		resolution = f'{img.width}x{img.height}'
+
 		# Generate file name
 		filename_keys_to_extract = [item.strip() for item in filename_keys.split(',')]
 		custom_filename = ''
@@ -91,7 +96,7 @@ class SaveImageExtended:
 			custom_filename = f'{filename_prefix}_'
 
 		if prompt is not None and len(filename_keys_to_extract) > 0:
-			found_values = {}
+			found_values = {'resolution': resolution}
 			self.find_keys_recursively(prompt, filename_keys_to_extract, found_values)
 			for key in filename_keys_to_extract:
 				value = found_values.get(key)
@@ -103,7 +108,7 @@ class SaveImageExtended:
 		custom_foldername = foldername_prefix
 
 		if prompt is not None and len(foldername_keys_to_extract) > 0:
-			found_values = {}
+			found_values = {'resolution': resolution}
 			self.find_keys_recursively(prompt, foldername_keys_to_extract, found_values)
 			for key in foldername_keys_to_extract:
 				value = found_values.get(key)
