@@ -12,6 +12,7 @@ from pathlib import Path
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), 'comfy'))
 original_locale = locale.setlocale(locale.LC_TIME, '')
 
+
 import folder_paths
 
 class SaveImageExtended:
@@ -102,7 +103,7 @@ class SaveImageExtended:
 		for key, value in obj.items():
 			if 'loras' in target_keys:
 				# Match both formats: lora_xx and lora_name_x
-				if re.match(r'lora(_name)?_\d+', key):
+				if re.match(r'lora(_name)?(_\d+)?', key):
 					if value.endswith('.safetensors'):
 						value = value.replace('.safetensors', '', 1)
 					if value != 'None':
@@ -206,6 +207,7 @@ class SaveImageExtended:
 				subfolder = self.get_subfolder_path(image_path, self.output_dir)
 				results.append({ 'filename': file, 'subfolder': subfolder, 'type': self.type})
 
+
 			# Save job data to json
 			if save_job_data != 'disabled':
 
@@ -217,12 +219,14 @@ class SaveImageExtended:
 
 				if 'models' in save_job_data:
 					models = SaveImageExtended.find_parameter_values(['ckpt_name', 'loras', 'vae_name'], prompt)
-					if models['ckpt_name']:
+					print('models::', models)
+					if models.get('ckpt_name'):
 						prompt_keys_to_save['checkpoint'] = models['ckpt_name']
-					if models['loras']:
+					if models.get('loras'):
 						prompt_keys_to_save['loras'] = models['loras']
-					if models['vae_name']:
+					if models.get('vae_name'):
 						prompt_keys_to_save['vae'] = models['vae_name']
+
 
 				if 'sampler' in save_job_data:
 					prompt_keys_to_save['sampler_parameters'] = SaveImageExtended.find_parameter_values(['seed', 'steps', 'cfg', 'sampler_name', 'scheduler', 'denoise'], prompt)
