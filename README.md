@@ -16,11 +16,13 @@ git clone https://github.com/thedyze/save-image-extended-comfyui
 ## Parameters / Usage
 
 - `filename_prefix` -  String prefix added to files.
-- `filename_keys` - Comma separated string with sampler parameters to add to filename. E.g: `sampler_name, scheduler, cfg, denoise` Added to filename in written order. `resolution` also works.
+- `filename_keys` - Comma separated string with sampler parameters to add to filename. E.g: `sampler_name, scheduler, cfg, denoise` Added to filename in written order. `resolution`  also works. `vae_name` `model_name` (upscale model), `ckpt_name` (checkpoint) are others that should work. Here you can try any parameter name of any node. As long as the parameter has the same variable name defined in the `prompt` object they should work. The same applies to `foldername_keys`. 
 - `foldername_prefix` - String prefix added to folders.
 - `foldername_keys` - Comma separated string with sampler parameters to add to foldername.
 - `delimiter` - Delimiter character, either `underscore`, `dot`, or `comma`.
 - `save_job_data` - If enabled, saves information about each job as entries in a `jobs.json` text file, inside the generated folder. Mulitple options for saving `prompt`, `basic data`, `sampler settings`, `loaded models`.
+- `job_data_per_image` - When enabled, saves individual job data files for each image.
+- `job_custom_text` - Custom string to save along with the job data. Right click the node and convert to input to connect with another node.
 - `save_metadata` - Saves metadata into the image.
 - `counter_digits` - Number of digits used for the image counter. `3` = image_001.png. Will adjust the counter if files are deleted. Looks for the highest number in the folder, does not fill gaps.
 - `counter_position` - Image counter first or last in the filename.
