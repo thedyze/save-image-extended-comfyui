@@ -14,6 +14,8 @@ original_locale = locale.setlocale(locale.LC_TIME, '')
 
 import folder_paths
 
+SEQUENCE_NUM_ID = 'sn#'
+
 class SaveImageExtended:
 	def __init__(self):
 		self.output_dir = folder_paths.get_output_directory()
@@ -36,6 +38,9 @@ class SaveImageExtended:
 				'save_metadata': (['disabled', 'enabled'], {'default': 'enabled'}),
 				'counter_digits': ([2, 3, 4, 5, 6], {'default': 3}),
 				'counter_position': (['first', 'last'], {'default': 'last'}),
+				'sequence_num': (['disabled', 'enabled'], {'default': 'disabled'}),
+				'sequence_num_digits': ([2, 3, 4, 5, 6], {'default': 3}),
+				'sequence_num_position': (['first', 'last'], {'default': 'first'}),
 				'image_preview': (['disabled', 'enabled'], {'default': 'enabled'}),
 			},
 			"optional": {
@@ -59,28 +64,31 @@ class SaveImageExtended:
 		return str(subfolder_path)
 
 	# Get current counter number from file names
-	def get_latest_counter(self, folder_path, filename_prefix, counter_digits, counter_position='last'):
+	def get_latest_counter(self, type, folder_path, filename_prefix, counter_digits, counter_position='last'):
 		counter = 1
 		if not os.path.exists(folder_path):
-			print(f"Folder {folder_path} does not exist, starting counter at 1.")
+			print(f"Folder {folder_path} does not exist, starting {type} at 1.")
 			return counter
 
 		try:
 			files = [f for f in os.listdir(folder_path) if f.endswith('.png')]
 			if files:
-				if counter_position == 'last':
-					counters = [int(f[-(4 + counter_digits):-4]) for f in files if f.startswith(filename_prefix)]
-				elif counter_position == 'first':
-					counters = [int(f[:counter_digits]) for f in files if f[counter_digits +1:].startswith(filename_prefix)]
+				if type == 'counter':
+					if counter_position == 'last':
+						counters = [int(f[-(4 + counter_digits):-4]) for f in files if f.startswith(filename_prefix)]
+					elif counter_position == 'first':
+						counters = [int(f[:counter_digits]) for f in files if f[counter_digits +1:].startswith(filename_prefix)]
+					else:
+						print(f"Invalid {type}_position. Using 'last' as default.")
+						counters = [int(f[-(4 + counter_digits):-4]) for f in files if f.startswith(filename_prefix)]
 				else:
-					print("Invalid counter_position. Using 'last' as default.")
-					counters = [int(f[-(4 + counter_digits):-4]) for f in files if f.startswith(filename_prefix)]
-
+					sequence_num_re = SEQUENCE_NUM_ID + r'(\d+)'
+					counters = [int(match.group(1)) for f in files for match in re.finditer(sequence_num_re, f) if match]
 				if counters:
 					counter = max(counters) + 1
 
 		except Exception as e:
-			print(f"An error occurred while finding the latest counter: {e}")
+			print(f"An error occurred while finding the latest {type}: {e}")
 
 		return counter
 
@@ -260,6 +268,9 @@ class SaveImageExtended:
 	def save_images(self,
 				 counter_digits,
 				 counter_position,
+				 sequence_num,
+				 sequence_num_digits,
+				 sequence_num_position,
 				 delimiter,
 				 filename_keys,
 				 foldername_keys,
@@ -294,7 +305,11 @@ class SaveImageExtended:
 			full_output_folder, filename, _, _, custom_filename = folder_paths.get_save_image_path(custom_filename, self.output_dir, images[0].shape[1], images[0].shape[0])
 			output_path = os.path.join(full_output_folder, custom_foldername)
 			os.makedirs(output_path, exist_ok=True)
-			counter = self.get_latest_counter(output_path, filename, counter_digits, counter_position)
+			counter = self.get_latest_counter('counter', output_path, filename, counter_digits, counter_position)
+			if sequence_num == "enabled":
+				sequence_num_counter = self.get_latest_counter('sequence_num', output_path, filename, sequence_num_digits, sequence_num_position)
+			else:
+				sequence_num_counter = ''
 
 			results = list()
 			for image in images:
@@ -310,9 +325,17 @@ class SaveImageExtended:
 							metadata.add_text(x, json.dumps(extra_pnginfo[x]))
 
 				if counter_position == 'last':
-					file = f'{filename}{delimiter_char}{counter:0{counter_digits}}.png'
+					file = f'{filename}{delimiter_char}{counter:0{counter_digits}}'
 				else:
-					file = f'{counter:0{counter_digits}}{delimiter_char}{filename}.png'
+					file = f'{counter:0{counter_digits}}{delimiter_char}{filename}'
+
+				if sequence_num == "enabled":
+					if sequence_num_position == 'last':
+						file = f'{file}{delimiter_char}{SEQUENCE_NUM_ID}{sequence_num_counter:0{sequence_num_digits}}'
+					else:
+						file = f'{SEQUENCE_NUM_ID}{sequence_num_counter:0{sequence_num_digits}}{delimiter_char}{file}'
+
+				file = f'{file}.png'
 
 				image_path = os.path.join(output_path, file)
 				img.save(image_path, pnginfo=metadata, compress_level=4)

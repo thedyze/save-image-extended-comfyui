@@ -26,6 +26,9 @@ git clone https://github.com/thedyze/save-image-extended-comfyui
 - `save_metadata` - Saves metadata into the image.
 - `counter_digits` - Number of digits used for the image counter. `3` = image_001.png. Will adjust the counter if files are deleted. Looks for the highest number in the folder, does not fill gaps.
 - `counter_position` - Image counter first or last in the filename.
+- `sequence_num` - Adds a per-directory sequence number to the filename.
+- `sequence_num_digits` - Number of digits used for the sequence number.
+- `sequence_num_position` - Sequence number first or last in the filename.
 - `image_preview` - Turns the image preview on and off.
 
 ## Node inputs
