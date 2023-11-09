@@ -36,6 +36,7 @@ class SaveImageExtended:
 				'save_metadata': (['disabled', 'enabled'], {'default': 'enabled'}),
 				'counter_digits': ([2, 3, 4, 5, 6], {'default': 3}),
 				'counter_position': (['first', 'last'], {'default': 'last'}),
+				'one_counter_per_folder': (['disabled', 'enabled'], {'default': 'disabled'}),
 				'image_preview': (['disabled', 'enabled'], {'default': 'enabled'}),
 			},
 			"optional": {
@@ -59,7 +60,7 @@ class SaveImageExtended:
 		return str(subfolder_path)
 
 	# Get current counter number from file names
-	def get_latest_counter(self, folder_path, filename_prefix, counter_digits, counter_position='last'):
+	def get_latest_counter(self, one_counter_per_folder, folder_path, filename_prefix, counter_digits, counter_position='last'):
 		counter = 1
 		if not os.path.exists(folder_path):
 			print(f"Folder {folder_path} does not exist, starting counter at 1.")
@@ -69,12 +70,12 @@ class SaveImageExtended:
 			files = [f for f in os.listdir(folder_path) if f.endswith('.png')]
 			if files:
 				if counter_position == 'last':
-					counters = [int(f[-(4 + counter_digits):-4]) for f in files if f.startswith(filename_prefix)]
+					counters = [int(f[-(4 + counter_digits):-4]) if f[-(4 + counter_digits):-4].isdigit() else 0 for f in files if one_counter_per_folder == 'enabled' or f.startswith(filename_prefix)]
 				elif counter_position == 'first':
-					counters = [int(f[:counter_digits]) for f in files if f[counter_digits +1:].startswith(filename_prefix)]
+					counters = [int(f[:counter_digits]) if f[:counter_digits].isdigit() else 0 for f in files if one_counter_per_folder == 'enabled' or f[counter_digits +1:].startswith(filename_prefix)]
 				else:
 					print("Invalid counter_position. Using 'last' as default.")
-					counters = [int(f[-(4 + counter_digits):-4]) for f in files if f.startswith(filename_prefix)]
+					counters = [int(f[-(4 + counter_digits):-4]) if f[-(4 + counter_digits):-4].isdigit() else 0 for f in files if one_counter_per_folder == 'enabled' or f.startswith(filename_prefix)]
 
 				if counters:
 					counter = max(counters) + 1
@@ -260,6 +261,7 @@ class SaveImageExtended:
 	def save_images(self,
 				 counter_digits,
 				 counter_position,
+				 one_counter_per_folder,
 				 delimiter,
 				 filename_keys,
 				 foldername_keys,
@@ -294,7 +296,7 @@ class SaveImageExtended:
 			full_output_folder, filename, _, _, custom_filename = folder_paths.get_save_image_path(custom_filename, self.output_dir, images[0].shape[1], images[0].shape[0])
 			output_path = os.path.join(full_output_folder, custom_foldername)
 			os.makedirs(output_path, exist_ok=True)
-			counter = self.get_latest_counter(output_path, filename, counter_digits, counter_position)
+			counter = self.get_latest_counter(one_counter_per_folder, output_path, filename, counter_digits, counter_position)
 
 			results = list()
 			for image in images:
