@@ -154,10 +154,16 @@ class SaveImageExtended:
 						except ValueError:
 							pass
 
-					if (isinstance(value, str) and value.endswith('.safetensors')) or (isinstance(value, str) and value.endswith('.pt')):
-						value = SaveImageExtended.remove_file_extension(value)
-
-					custom_name += f'{delimiter_char}{value}'
+					if (isinstance(value, str)):
+						if (value.endswith('.safetensors') or value.endswith('.pt')):
+							value = SaveImageExtended.remove_file_extension(value)
+						# prefix and keys canvery well be subfolders ending with a /
+						print(custom_name)
+						if (custom_name[-1] == '/'):
+							# for subfolders, do not start filename with a delimiter...
+							custom_name += f'{value}'
+						else:
+							custom_name += f'{delimiter_char}{value}'
 
 		return custom_name.strip(delimiter_char)
 
