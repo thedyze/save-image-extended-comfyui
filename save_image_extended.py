@@ -158,7 +158,6 @@ class SaveImageExtended:
 						if (value.endswith('.safetensors') or value.endswith('.pt')):
 							value = SaveImageExtended.remove_file_extension(value)
 						# prefix and keys canvery well be subfolders ending with a /
-						print(custom_name)
 						if (custom_name[-1] == '/'):
 							# for subfolders, do not start filename with a delimiter...
 							custom_name += f'{value}'
